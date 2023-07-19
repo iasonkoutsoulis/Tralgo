@@ -6,7 +6,8 @@ import pandas as pd
 from datetime import datetime
 
 bimon_arts = dict()
-for page in range(287, 286, -1):
+for page in range(287, 0, -1):
+    print(str(page))
     # initialize using the front-page links
     url = 'https://www.theguardian.com/business/stock-markets?page=' + str(page) # total pages = 287
     html = requests.get(url).text
@@ -28,8 +29,11 @@ for page in range(287, 286, -1):
         expr = r'https:\/\/www\.theguardian\.com\/\S+\/' + yeart + r'\/\S+'
         text_links = []
         for link in all_links:
-            if re.search(expr, link):
+            if re.search(r'/all$', link):
+                pass
+            elif re.search(expr, link):
                 text_links.append(link)
+            
 
 
     # now we open all of the articles on the page and collect them into our bimonthly datasets
@@ -43,15 +47,17 @@ for page in range(287, 286, -1):
         except Exception:
           pass
 
-        timopub = []
         timet = subsoup.find('meta', {'property':'article:published_time'})
-        fdate = timet['content']
+        try:
+            fdate = timet['content']
+        except Exception:
+            pass
         dt_date = datetime.strptime(fdate, '%Y-%m-%dT%H:%M:%S.%fZ')
         art_date = str(dt_date.year) + '-' + str(dt_date.month)
         bimon = 'B2' if dt_date.day >= 15 else 'B1'
         
-        if not (bimon + '-' + art_date) in bimon_arts:
-            bimon_arts[bimon + '-' + art_date] = [] 
+        if not (art_date + '-' + bimon) in bimon_arts:
+            bimon_arts[art_date + '-' + bimon] = [] 
         else:
             pass
 
@@ -60,10 +66,10 @@ for page in range(287, 286, -1):
             article.append(textlink.string)
             article = list(filter(lambda item: item is not None, article))
             art_str = " ".join(article)
-        if art_str in bimon_arts[bimon + '-' + art_date]:
+        if art_str in bimon_arts[art_date + '-' + bimon]:
             pass
         else:
-            bimon_arts[bimon + '-' + art_date].append(art_str)
+            bimon_arts[art_date + '-' + bimon].append(art_str)
 
 for a_bimon in bimon_arts:
     with open('articles/articles_of_' + a_bimon + '.txt', 'a', encoding="utf-8") as f:
