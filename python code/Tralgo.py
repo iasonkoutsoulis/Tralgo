@@ -5,6 +5,33 @@ from bs4 import BeautifulSoup as bs
 import pandas as pd
 from datetime import datetime
 
+def link_collect(soop):
+    all_linx = []
+    for link in soop.find_all('a'):
+        nlink = link.get('href')
+        all_linx.append(nlink)
+        all_linx = list(filter(lambda item: item is not None, all_linx))
+    return all_linx
+
+def year_collect(soop):
+    years = []
+    for timet in soop.find_all('time', {'class': 'fc-date-headline'}):
+        years.append(re.findall(r'\d+', timet.string)[-1])
+    years = list(dict.fromkeys(years))
+    return years
+
+def tl_collect(all_links, years):
+    for yeart in years:
+        expr = r'https:\/\/www\.theguardian\.com\/\S+\/' + yeart + r'\/\S+'
+        text_links = []
+        for link in all_links:
+            if re.search(r'/all$', link):
+                pass
+            elif re.search(expr, link):
+                text_links.append(link)
+    return text_links
+
+# main script 
 bimon_arts = dict()
 for page in range(287, 0, -1):
     print(str(page))
@@ -14,27 +41,9 @@ for page in range(287, 0, -1):
     soup = bs(html, 'lxml')
 
     # get all article links from the page we've opened (we use the year they include to identify them)
-    all_links = []
-    for link in soup.find_all('a'):
-        nlink = link.get('href')
-        all_links.append(nlink)
-        all_links = list(filter(lambda item: item is not None, all_links))
-
-    years = []
-    for timet in soup.find_all('time', {'class': 'fc-date-headline'}):
-        years.append(re.findall(r'\d+', timet.string)[-1])
-    years = list(dict.fromkeys(years))    
-
-    for yeart in years:
-        expr = r'https:\/\/www\.theguardian\.com\/\S+\/' + yeart + r'\/\S+'
-        text_links = []
-        for link in all_links:
-            if re.search(r'/all$', link):
-                pass
-            elif re.search(expr, link):
-                text_links.append(link)
-            
-
+    all_links = link_collect(soup)
+    years = year_collect(soup)
+    text_links = tl_collect(all_links, years) 
 
     # now we open all of the articles on the page and collect them into our bimonthly datasets
     # we create a dictionary/log entry which holds all text for a span of 15 days.
@@ -57,7 +66,7 @@ for page in range(287, 0, -1):
         bimon = 'B2' if dt_date.day >= 15 else 'B1'
         
         if not (art_date + '-' + bimon) in bimon_arts:
-            bimon_arts[art_date + '-' + bimon] = [] 
+            bimon_arts[art_date + '-' + bimon] = []
         else:
             pass
 
