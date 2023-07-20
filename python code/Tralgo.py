@@ -2,7 +2,6 @@
 import requests
 import re
 from bs4 import BeautifulSoup as bs
-import pandas as pd
 from datetime import datetime
 
 def link_collect(soop):
@@ -84,5 +83,7 @@ for a_bimon in bimon_arts:
     with open('articles/articles_of_' + a_bimon + '.txt', 'a', encoding="utf-8") as f:
         f.write(" ".join(bimon_arts[a_bimon]))
 
+
+
 # to do:
-# better scraping for content, less junk more substance?
+# better and more content to scrape, less junk more substance?
