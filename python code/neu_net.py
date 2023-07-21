@@ -3,6 +3,7 @@ with the present we'll train the text data along with the financial data and get
 this will require some manipulation of the current state of the data, which makes sense that is done here,
 in order to promote homogeneity and peace of mind...
 '''
+import json
 import numpy as np
 import torch
 import torch.nn as nn
@@ -10,9 +11,18 @@ import torch.optim as optim
 from sklearn.feature_extraction.text import TfidfVectorizer
 import pandas as pd
 
-with open('articles/articles_of_2009-7-B2.txt') as f:
-    lines = f.readlines()
+with open('E:/Tralgo/articles/articles_of_2009-7-B2.txt') as f:
+    article_text = f.readlines()
 
+vectorizer = TfidfVectorizer()
+X = vectorizer.fit(article_text)
+
+print(X.vocabulary_)
+print(X.idf_)
+
+vector = X.transform([article_text[0]])
+print(vector.shape)
+print(vector.toarray())
 
 
 

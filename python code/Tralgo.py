@@ -1,8 +1,9 @@
 # This is the algorithm I'll use to do automated trading. 
-import requests
-import re
 from bs4 import BeautifulSoup as bs
 from datetime import datetime
+import json
+import re
+import requests
 
 def link_collect(soop):
     all_linx = []
@@ -79,9 +80,13 @@ for page in range(287, 0, -1):
         else:
             bimon_arts[art_date + '-' + bimon].append(art_str)
 
-for a_bimon in bimon_arts:
-    with open('articles/articles_of_' + a_bimon + '.txt', 'a', encoding="utf-8") as f:
-        f.write(" ".join(bimon_arts[a_bimon]))
+# instead of text files I'll try the JSON stuff now
+with open("article_container.json", "w") as f:
+    json.dump(bimon_arts, f)
+
+# for a_bimon in bimon_arts:
+#     with open('articles/articles_of_' + a_bimon + '.txt', 'a', encoding="utf-8") as f:
+#         f.write(" ".join(bimon_arts[a_bimon]))
 
 
 
