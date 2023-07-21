@@ -33,7 +33,7 @@ def tl_collect(all_links, years):
 
 # main script 
 bimon_arts = dict()
-for page in range(287, 0, -1):
+for page in range(287, 286, -1):
     print(str(page))
     # initialize using the front-page links
     url = 'https://www.theguardian.com/business/stock-markets?page=' + str(page) # total pages = 287
@@ -81,7 +81,7 @@ for page in range(287, 0, -1):
             bimon_arts[art_date + '-' + bimon].append(art_str)
 
 # instead of text files I'll try the JSON stuff now
-with open("article_container.json", "w") as f:
+with open("E:/Tralgo/articles/article_container.json", "w") as f:
     json.dump(bimon_arts, f)
 
 # for a_bimon in bimon_arts:

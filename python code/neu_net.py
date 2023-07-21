@@ -11,18 +11,20 @@ import torch.optim as optim
 from sklearn.feature_extraction.text import TfidfVectorizer
 import pandas as pd
 
-with open('E:/Tralgo/articles/articles_of_2009-7-B2.txt') as f:
-    article_text = f.readlines()
+with open('E:/Tralgo/articles/article_container.json') as f:
+    articles_text = json.load(f)
 
 vectorizer = TfidfVectorizer()
-X = vectorizer.fit(article_text)
+for key in articles_text:
+    article = articles_text[key]
+    X = vectorizer.fit(article)
 
-print(X.vocabulary_)
-print(X.idf_)
+    print(X.vocabulary_)
+    print(X.idf_)
 
-vector = X.transform([article_text[0]])
-print(vector.shape)
-print(vector.toarray())
+    vector = X.transform([article[0]])
+    print(vector.shape)
+    print(vector.toarray())
 
 
 
