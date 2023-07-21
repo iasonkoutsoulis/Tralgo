@@ -81,7 +81,7 @@ for page in range(287, 286, -1):
             bimon_arts[art_date + '-' + bimon].append(art_str)
 
 # instead of text files I'll try the JSON stuff now
-with open("E:/Tralgo/articles/article_container.json", "w") as f:
+with open('E:/Tralgo/articles/article_container.json', "w") as f:
     json.dump(bimon_arts, f)
 
 # for a_bimon in bimon_arts:

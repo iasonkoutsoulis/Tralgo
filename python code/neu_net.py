@@ -11,7 +11,7 @@ import torch.optim as optim
 from sklearn.feature_extraction.text import TfidfVectorizer
 import pandas as pd
 
-with open('E:/Tralgo/articles/article_container.json') as f:
+with open('E:/Tralgo/articles/article_container.json', 'r') as f:
     articles_text = json.load(f)
 
 vectorizer = TfidfVectorizer()
