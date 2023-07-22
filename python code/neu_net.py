@@ -5,11 +5,12 @@ in order to promote homogeneity and peace of mind...
 '''
 import json
 import numpy as np
+import pandas as pd
+from sklearn.feature_extraction.text import TfidfVectorizer
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from sklearn.feature_extraction.text import TfidfVectorizer
-import pandas as pd
+
 
 with open('E:/Tralgo/articles/article_container.json', 'r') as f:
     articles_text = json.load(f)
@@ -18,13 +19,7 @@ vectorizer = TfidfVectorizer()
 for key in articles_text:
     article = articles_text[key]
     X = vectorizer.fit(article)
-
-    print(X.vocabulary_)
-    print(X.idf_)
-
     vector = X.transform([article[0]])
-    print(vector.shape)
-    print(vector.toarray())
 
 
 
