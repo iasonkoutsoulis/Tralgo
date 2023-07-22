@@ -33,7 +33,7 @@ def tl_collect(all_links, years):
 
 # main script 
 bimon_arts = dict()
-for page in range(287, 286, -1):
+for page in range(287, 280, -1):
     print(str(page))
     # initialize using the front-page links
     url = 'https://www.theguardian.com/business/stock-markets?page=' + str(page) # total pages = 287
