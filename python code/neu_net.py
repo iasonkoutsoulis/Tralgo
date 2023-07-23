@@ -3,6 +3,7 @@ with the present we'll train the text data along with the financial data and get
 this will require some manipulation of the current state of the data, which makes sense that is done here,
 in order to promote homogeneity and peace of mind...
 '''
+from datetime import datetime
 from gensim.models.doc2vec import Doc2Vec, TaggedDocument
 import json
 import numpy as np
@@ -12,6 +13,7 @@ from sklearn import preprocessing
 from sklearn.feature_extraction.text import TfidfVectorizer
 import torch
 import torch.nn as nn
+from torch.nn.utils.rnn import pad_sequence
 import torch.optim as optim
 
 #
@@ -64,7 +66,26 @@ for period in articles_text.keys():
     embeds_vecs = np.concatenate((vectors[period], doc_embeds_tens[period]), axis=0)
     X_data[period] = torch.tensor(embeds_vecs, dtype=torch.float32)
 
-X = pd.DataFrame.from_dict(X_data, orient='index')
+#
+# pad the tensors to the same length before creating the dataframe
+
+feat_names = vectorizer.get_feature_names_out()
+padding = pad_sequence(list(X_data.values()), batch_first=True)
+
+#
+# here we do some datetime manipulations to sort our index similarly in X and Y
+
+datelist = list(articles_text.keys())
+datelist.sort(key=lambda date: datetime.strptime(date, "%Y-%m-B%d"))
+
+#
+# create our X data
+
+X = pd.DataFrame(padding.numpy(), index=datelist, columns=[period for period in range(padding.shape[1])])
+X.columns = feat_names.tolist() + [f"col_{i}" for i in range(len(feat_names), len(X.columns))]
+
+#
+# create our Y data
 
 Y_data = feather.read_feather('E:/Tralgo/data/financial_container.csv')
 Y = Y_data['TSLA_indicator']
