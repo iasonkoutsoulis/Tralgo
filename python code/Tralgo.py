@@ -35,7 +35,7 @@ def tl_collect(all_links, years):
 # main script
 
 bimon_arts = dict()
-for page in range(287, 280, -1):
+for page in range(287, 0, -1):
     print(str(page))
     
     #
