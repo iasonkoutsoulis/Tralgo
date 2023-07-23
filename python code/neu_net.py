@@ -11,6 +11,7 @@ import pandas as pd
 import pyarrow.feather as feather
 from sklearn import preprocessing
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.model_selection import train_test_split
 import torch
 import torch.nn as nn
 from torch.nn.utils.rnn import pad_sequence
@@ -83,13 +84,26 @@ datelist.sort(key=lambda date: datetime.strptime(date, "%Y-%m-B%d"))
 
 X = pd.DataFrame(padding.numpy(), index=datelist, columns=[period for period in range(padding.shape[1])])
 X.columns = feat_names.tolist() + [f"col_{i}" for i in range(len(feat_names), len(X.columns))]
+X.index.name = "Date"
 
 #
-# create our Y data
+# create our Y data and intersect our datasets
 
 Y_data = feather.read_feather('E:/Tralgo/data/financial_container.csv')
-Y = Y_data['TSLA_indicator']
+Y = Y_data['TSLA_future_indicator']
+
+tot_df = pd.merge(X, Y, how='inner', on='Date')
+X = tot_df.iloc[:,0:-1]
+Y = tot_df.iloc[:,-1]
 
 #
 # now we'll do some preprocessing of our data
 
+mm_scaler = preprocessing.MinMaxScaler()
+X_scale = mm_scaler.fit_transform(X)
+
+X_train, X_val_test, Y_train, Y_val_test = train_test_split(X_scale, Y, test_size=0.3)
+X_val, X_test, Y_val, Y_test = train_test_split(X_val_test, Y_val_test, test_size=0.5)
+
+#
+# after this point we begin to code the neural network!
