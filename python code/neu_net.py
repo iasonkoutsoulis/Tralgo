@@ -12,8 +12,10 @@ import pyarrow.feather as feather
 from sklearn import preprocessing
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
+import time
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from torch.nn.utils.rnn import pad_sequence
 import torch.optim as optim
 
@@ -40,7 +42,10 @@ for period, articles in articles_text.items():
 #
 # here we train our Doc2Vec model on every word of every article with attention to tags
 
-doc2vec_model = Doc2Vec(tagged_arts, vector_size=300, min_count=10, epochs=1000)
+st = time.time()
+doc2vec_model = Doc2Vec(tagged_arts, vector_size=300, min_count=20, epochs=10)
+en = time.time()
+print(en-st)
 
 #
 # next we'll work on the embeddings a bit
@@ -112,20 +117,33 @@ class NeuralNet(nn.Module):
     def __init__(self):
         super(NeuralNet, self).__init__()
         self.l1 = nn.Linear(len(X_train[0]), 32)
-        self.l2 = nn.Linear(32, 32)
-        self.l3 = nn.Linear(32, 1)
+        self.l2 = nn.Linear(32, 64)
+        self.l3 = nn.Linear(64, 64)
+        self.l4 = nn.Linear(64, 32)
+        self.l5 = nn.Linear(32, 1)
         self.relu = nn.ReLU()
         self.sigmoid = nn.Sigmoid()
+        self.dropout_prob = dropout_prob
 
     def forward(self, x):
         x = self.relu(self.l1(x))
+        x = F.dropout(x, p=self.dropout_prob, training=self.training)
         x = self.relu(self.l2(x))
-        x = self.sigmoid(self.l3(x))
+        x = F.dropout(x, p=self.dropout_prob, training=self.training)
+        x = self.relu(self.l3(x))
+        x = F.dropout(x, p=self.dropout_prob, training=self.training)
+        x = self.relu(self.l4(x))
+        x = F.dropout(x, p=self.dropout_prob, training=self.training)
+        x = self.sigmoid(self.l5(x))
         return x
-    
+
+dropout_prob = 0.3
+weight_decay = 0.01
+
 model = NeuralNet()
+
 criterion = nn.BCELoss()
-optimizer = optim.Adam(model.parameters())
+optimizer = optim.Adam(model.parameters(), weight_decay=weight_decay)
 
 X_train_tensor = torch.tensor(X_train, dtype=torch.float32)
 Y_train_tensor = torch.tensor(Y_train, dtype=torch.float32).view(-1, 1)
@@ -134,7 +152,7 @@ Y_val_tensor = torch.tensor(Y_val, dtype=torch.float32).view(-1, 1)
 X_test_tensor = torch.tensor(X_test, dtype=torch.float32)
 Y_test_tensor = torch.tensor(Y_test, dtype=torch.float32).view(-1, 1)
 
-num_epochs = 10000
+num_epochs = 100
 batch_size = 1
 for epoch in range(num_epochs):
     model.train()
@@ -173,4 +191,5 @@ print(f"Test Accuracy: {test_accuracy.item():.4f}")
 
 torch.save(model.state_dict(), 'E:/Tralgo/model.pt')
 
-#model.load_state_dict(torch.load('E:/Tralgo/model.pt'))
+# if I ever want to load:
+# model.load_state_dict(torch.load('E:/Tralgo/model.pt'))
