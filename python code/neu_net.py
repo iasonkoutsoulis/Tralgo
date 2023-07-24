@@ -137,7 +137,7 @@ class NeuralNet(nn.Module):
         x = self.sigmoid(self.l5(x))
         return x
 
-dropout_prob = 0.3
+dropout_prob = 0.5
 weight_decay = 0.01
 
 model = NeuralNet()
@@ -152,8 +152,10 @@ Y_val_tensor = torch.tensor(Y_val, dtype=torch.float32).view(-1, 1)
 X_test_tensor = torch.tensor(X_test, dtype=torch.float32)
 Y_test_tensor = torch.tensor(Y_test, dtype=torch.float32).view(-1, 1)
 
-num_epochs = 100
+num_epochs = 10
 batch_size = 1
+best_val_loss = float('inf')
+patience = 10
 for epoch in range(num_epochs):
     model.train()
     num_batches = len(X_train_tensor) // batch_size
@@ -181,6 +183,16 @@ for epoch in range(num_epochs):
         val_loss = criterion(val_outputs, Y_val_tensor)
 
     print(f"Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.4f}, Val Loss: {val_loss.item():.4f}")
+    
+    # Early stopping based on validation loss
+    if val_loss.item() < best_val_loss:
+        best_val_loss = val_loss.item()
+        patience = 10  # Reset patience
+    else:
+        patience -= 1
+        if patience == 0:
+            print("Early stopping...")
+            break
 
 model.eval()
 with torch.no_grad():
