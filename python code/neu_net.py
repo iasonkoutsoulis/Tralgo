@@ -45,12 +45,12 @@ doc2vec_model = Doc2Vec(tagged_arts, vector_size=128, min_count=10, epochs=10)
 en = time.time()
 print('Time elapsed: ', en-st)
 
-doc2vec_model.save('E:/Tralgo/d2v_M.pt')
+doc2vec_model.save('E:/Tralgo/d2v_M.model')
 
 #
 # next we'll work on the embeddings a bit
 
-# doc2vec_model = Doc2Vec.load('E:/Tralgo/d2v_M.pt')
+# doc2vec_model = Doc2Vec.load('E:/Tralgo/d2v_M.model')
 doc_embeds = {}
 for period, embeds in articles_text.items():
     doc_embeds[period] = doc2vec_model.dv[period]
@@ -96,7 +96,7 @@ X.index.name = "Date"
 # create our Y data and intersect our datasets
 
 Y_data = feather.read_feather('E:/Tralgo/data/financial_container.csv')
-Y = Y_data['AAPL_future_indicator']
+Y = Y_data['GOOG_future_indicator']
 
 tot_df = pd.merge(X, Y, how='inner', on='Date')
 X = tot_df.iloc[:,0:-1]

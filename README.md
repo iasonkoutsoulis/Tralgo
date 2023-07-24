@@ -11,5 +11,11 @@ Nothing is certain for now, but if this where to turn into a speculative algorit
 
 ### Neural Network training
 
-I'll have to work on the data preprocessing first, after which point I hope this part will be straightforward to code (and a pain to train).
+Working with Gensim's Doc2Vec word embeddings, PyTorch, and some other tricks.
 
+### Results
+
+It is rather straightforward to get the detrended financial timeseries, but I was preoccupied with building the model so I didn't pay it much mind. I will also have to extract more text from other sources, something like FT.
+
+Here is a snapshot of predicting power so far:
+![alt text](data/guardian_results.png)
