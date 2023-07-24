@@ -26,11 +26,6 @@ with open('E:/Tralgo/articles/article_container.json', 'r') as f:
     articles_text = json.load(f)
 
 #
-# in this part I worry about getting a word tokenizer going
-
-flat_articles_list = [item for sublist in articles_text.values() for item in sublist]
-
-#
 # we tokenize our text data with their relevant tags from the dictionary
 
 tagged_arts = []
@@ -41,15 +36,21 @@ for period, articles in articles_text.items():
 
 #
 # here we train our Doc2Vec model on every word of every article with attention to tags
+# note that vector_size dictates how many embeddings will pass into the X_data
+# on colab, this model is trained for 1000 epochs.
 
 st = time.time()
-doc2vec_model = Doc2Vec(tagged_arts, vector_size=300, min_count=20, epochs=10)
+print('Running doc2vec, maybe consider getting the google stuff')
+doc2vec_model = Doc2Vec(tagged_arts, vector_size=128, min_count=10, epochs=10)
 en = time.time()
-print(en-st)
+print('Time elapsed: ', en-st)
+
+doc2vec_model.save('E:/Tralgo/d2v_M.pt')
 
 #
 # next we'll work on the embeddings a bit
 
+# doc2vec_model = Doc2Vec.load('E:/Tralgo/d2v_M.pt')
 doc_embeds = {}
 for period, embeds in articles_text.items():
     doc_embeds[period] = doc2vec_model.dv[period]
@@ -116,9 +117,9 @@ X_val, X_test, Y_val, Y_test = train_test_split(X_val_test, Y_val_test, test_siz
 class NeuralNet(nn.Module):
     def __init__(self):
         super(NeuralNet, self).__init__()
-        self.l1 = nn.Linear(len(X_train[0]), 32)
-        self.l2 = nn.Linear(32, 64)
-        self.l3 = nn.Linear(64, 64)
+        self.l1 = nn.Linear(len(X_train[0]), 64)
+        self.l2 = nn.Linear(64, 128)
+        self.l3 = nn.Linear(128, 64)
         self.l4 = nn.Linear(64, 32)
         self.l5 = nn.Linear(32, 1)
         self.relu = nn.ReLU()
@@ -137,8 +138,8 @@ class NeuralNet(nn.Module):
         x = self.sigmoid(self.l5(x))
         return x
 
-dropout_prob = 0.5
-weight_decay = 0.01
+dropout_prob = 0.3
+weight_decay = 0.03
 
 model = NeuralNet()
 
