@@ -203,6 +203,12 @@ for epoch in range(num_epochs):
             print("Early stopping...")
             break
 
+#
+# if I ever want to load:
+# remove the training part of the models
+# ...
+# model.load_state_dict(torch.load('E:/Tralgo/model.pt'))
+
 model.eval()
 with torch.no_grad():
     test_outputs = model(X_test_tensor)
@@ -211,8 +217,3 @@ with torch.no_grad():
 print(f"Test Accuracy: {test_accuracy.item():.4f}")
 
 torch.save(model.state_dict(), 'E:/Tralgo/model.pt')
-
-# if I ever want to load:
-# remove the training part of the models
-# ...
-# model.load_state_dict(torch.load('E:/Tralgo/model.pt'))
