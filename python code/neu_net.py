@@ -9,6 +9,7 @@ import json
 import numpy as np
 import pandas as pd
 import pyarrow.feather as feather
+import re
 from sklearn import preprocessing
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
@@ -79,15 +80,18 @@ for period in articles_text.keys():
 padding = pad_sequence(list(X_data.values()), batch_first=True)
 
 #
-# here we do some datetime manipulations to sort our index similarly in X and Y
+# here we create a date function to sort our index similarly in X and Y
 
-datelist = list(articles_text.keys())
-datelist.sort(key=lambda date: datetime.strptime(date, "%Y-%m-B%d"))
+def Datelist(input_dates):
+    datelist = list(input_dates)
+    datelist.sort(key=lambda date: datetime.strptime(date.zfill(2), "%Y-%m-B%d"))
+    datelist = [re.sub(r'(?<=\d{4}-)\d{1}(?=-)', lambda match: match.group(0).zfill(2), date) for date in datelist]
+    return datelist
 
 #
 # create our X data
 
-X = pd.DataFrame(padding.numpy(), index=datelist, columns=[period for period in range(padding.shape[1])])
+X = pd.DataFrame(padding.numpy(), index=Datelist(articles_text.keys()), columns=[period for period in range(padding.shape[1])])
 feat_names = vectorizer.get_feature_names_out()
 X.columns = feat_names.tolist() + [f"col_{i}" for i in range(len(feat_names), len(X.columns))]
 X.index.name = "Date"
@@ -96,11 +100,15 @@ X.index.name = "Date"
 # create our Y data and intersect our datasets
 
 Y_data = feather.read_feather('E:/Tralgo/data/financial_container.csv')
-Y = Y_data['GOOG_future_indicator']
+Y = pd.DataFrame(Y_data['GOOG_future_indicator'], index=Datelist(Y_data.index))
+Y.index.name = "Date"
+
+#
+# we leave out the last row because Y is NaN and we'll use it for prediction.
 
 tot_df = pd.merge(X, Y, how='inner', on='Date')
-X = tot_df.iloc[:,0:-1]
-Y = tot_df.iloc[:,-1]
+X = tot_df.iloc[0:-1,0:-1]
+Y = tot_df.iloc[0:-1,-1]
 
 #
 # now we'll do some preprocessing of our data
@@ -108,7 +116,7 @@ Y = tot_df.iloc[:,-1]
 mm_scaler = preprocessing.MinMaxScaler()
 X_scale = mm_scaler.fit_transform(X)
 
-X_train, X_val_test, Y_train, Y_val_test = train_test_split(X_scale, Y, test_size=0.3)
+X_train, X_val_test, Y_train, Y_val_test = train_test_split(X_scale, Y, test_size=0.2)
 X_val, X_test, Y_val, Y_test = train_test_split(X_val_test, Y_val_test, test_size=0.5)
 
 #
@@ -139,7 +147,7 @@ class NeuralNet(nn.Module):
         return x
 
 dropout_prob = 0.3
-weight_decay = 0.03
+weight_decay = 0.01
 
 model = NeuralNet()
 
@@ -205,4 +213,6 @@ print(f"Test Accuracy: {test_accuracy.item():.4f}")
 torch.save(model.state_dict(), 'E:/Tralgo/model.pt')
 
 # if I ever want to load:
+# remove the training part of the models
+# ...
 # model.load_state_dict(torch.load('E:/Tralgo/model.pt'))
