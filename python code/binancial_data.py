@@ -13,7 +13,7 @@ df.index = df.index.strftime('%Y-%m') + '-' + np.where(df.index.day>=15, 'B2', '
 df = df.groupby(df.index).mean()
 for col in df:
     df[col + '_dif'] = df[col].diff()
-    df[col + '_indicator'] = np.where(df[col + '_dif'] >=0, 1, 0)
+    df[col + '_indicator'] = np.where(df[col + '_dif']>=0, 1, -1)
     df[col + '_future_indicator'] = df[col + '_indicator'].shift(-1)
 
 adfuller(df['GOOG_dif'].dropna())
