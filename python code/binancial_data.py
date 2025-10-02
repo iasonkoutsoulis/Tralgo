@@ -18,4 +18,4 @@ for col in df:
 
 adfuller(df['GOOG_dif'].dropna())
 
-feather.write_feather(df, '/data/financial_container.csv')
+feather.write_feather(df, 'data/financial_container.csv')

@@ -100,6 +100,6 @@ for page in range(329, 0, -1):
 
 #
 # instead of text files I'll try the JSON stuff now
-os.makedirs('/articles', exist_ok=True)
-with open('/articles/article_container.json', "w") as f:
+os.makedirs('articles', exist_ok=True)
+with open('articles/article_container.json', "w") as f:
     json.dump(bimon_arts, f)
