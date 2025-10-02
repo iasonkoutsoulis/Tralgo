@@ -1,7 +1,7 @@
-from google.colab import drive
-drive.mount('/content/drive')
+# from google.colab import drive
+# drive.mount('/content/drive')
 
-# This is the algorithm I'll use to do automated trading.
+# collect articles from source to use as a network trainer
 from bs4 import BeautifulSoup as bs
 from datetime import datetime
 import json
@@ -100,6 +100,6 @@ for page in range(329, 0, -1):
 
 #
 # instead of text files I'll try the JSON stuff now
-os.makedirs('/content/drive/MyDrive/Tralgo articles', exist_ok=True)
-with open('/content/drive/MyDrive/Tralgo articles/article_container.json', "w") as f:
+os.makedirs('/articles', exist_ok=True)
+with open('/articles/article_container.json', "w") as f:
     json.dump(bimon_arts, f)

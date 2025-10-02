@@ -28,7 +28,7 @@ except Exception:
 #
 # Fetch articles data
 
-with open('/content/drive/MyDrive/Tralgo articles/article_container.json', 'r') as f:
+with open('/articles/article_container.json', 'r') as f:
     articles_text = json.load(f)
 
 # #
@@ -113,7 +113,7 @@ X.index.name = "Date"
 #
 # create our Y data and intersect our datasets
 
-Y_data = feather.read_feather('/content/drive/MyDrive/Tralgo articles/financial_container.csv')
+Y_data = feather.read_feather('/data/financial_container.csv')
 Y = pd.DataFrame(Y_data['GOOG_future_indicator'], index=Datelist(Y_data.index))
 Y.index.name = "Date"
 
@@ -245,4 +245,4 @@ with torch.no_grad():
 
 print(f"Test Accuracy: {test_accuracy.item():.4f}")
 
-torch.save(model.state_dict(), '/content/drive/MyDrive/Tralgo articles/model.pt')
+torch.save(model.state_dict(), '/model.pt')
