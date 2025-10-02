@@ -1,7 +1,11 @@
-# This is the algorithm I'll use to do automated trading. 
+from google.colab import drive
+drive.mount('/content/drive')
+
+# This is the algorithm I'll use to do automated trading.
 from bs4 import BeautifulSoup as bs
 from datetime import datetime
 import json
+import os
 import re
 import requests
 
@@ -15,14 +19,19 @@ def link_collect(soop):
 
 def year_collect(soop):
     years = []
-    for timet in soop.find_all('time', {'class': 'fc-date-headline'}):
-        years.append(re.findall(r'\d+', timet.string)[-1])
-    years = list(dict.fromkeys(years))
+    seen = set()
+
+    for t in soup.select('time[datetime]'):
+        y = t['datetime'][:4]
+        if y not in seen:
+            seen.add(y)
+            years.append(y)
+
     return years
 
 def tl_collect(all_links, years):
     for yeart in years:
-        expr = r'https:\/\/www\.theguardian\.com\/\S+\/' + yeart + r'\/\S+'
+        expr = expr = re.compile(r'^/.*/' + re.escape(yeart) + r'/[^#\s]+$')
         text_links = []
         for link in all_links:
             if re.search(r'/all$', link):
@@ -35,29 +44,29 @@ def tl_collect(all_links, years):
 # main script
 
 bimon_arts = dict()
-for page in range(287, 0, -1):
+for page in range(329, 0, -1):
     print(str(page))
-    
+
     #
     # initialize using the front-page links
 
-    url = 'https://www.theguardian.com/business/stock-markets?page=' + str(page) # total pages = 287
+    url = 'https://www.theguardian.com/business/stock-markets?page=' + str(page) # total pages = 329 (as of 01-10-2025)
     html = requests.get(url).text
     soup = bs(html, 'lxml')
-    
+
     #
     # get all article links from the page we've opened (we use the year they include to identify them)
-    
+
     all_links = link_collect(soup)
     years = year_collect(soup)
-    text_links = tl_collect(all_links, years) 
-    
+    text_links = tl_collect(all_links, years)
+
     #
     # now we open all of the articles on the page and collect them into our bimonthly datasets
     # we create a dictionary/log entry which holds all text for a span of 15 days.
-    
+
     for tlink in text_links:
-        subhtml = requests.get(tlink).text
+        subhtml = requests.get('https://www.theguardian.com' + tlink).text
         subsoup = bs(subhtml, 'lxml')
         texpr = r'^.*?(?= \||$)'
         try:
@@ -73,7 +82,7 @@ for page in range(287, 0, -1):
         dt_date = datetime.strptime(fdate, '%Y-%m-%dT%H:%M:%S.%fZ')
         art_date = str(dt_date.year) + '-' + str(dt_date.month)
         bimon = 'B2' if dt_date.day >= 15 else 'B1'
-        
+
         if not (art_date + '-' + bimon) in bimon_arts:
             bimon_arts[art_date + '-' + bimon] = []
         else:
@@ -91,6 +100,6 @@ for page in range(287, 0, -1):
 
 #
 # instead of text files I'll try the JSON stuff now
-
-with open('E:/Tralgo/articles/article_container.json', "w") as f:
+os.makedirs('/content/drive/MyDrive/Tralgo articles', exist_ok=True)
+with open('/content/drive/MyDrive/Tralgo articles/article_container.json', "w") as f:
     json.dump(bimon_arts, f)

@@ -28,7 +28,7 @@ except Exception:
 #
 # Fetch articles data
 
-with open('E:/Tralgo/articles/article_container.json', 'r') as f:
+with open('/content/drive/MyDrive/Tralgo articles/article_container.json', 'r') as f:
     articles_text = json.load(f)
 
 # #
@@ -58,13 +58,13 @@ with open('E:/Tralgo/articles/article_container.json', 'r') as f:
 # # en = time.time()
 # # print('Time elapsed: ', en-st)
 
-# # doc2vec_model.save('E:/Tralgo/d2v_M.model')
+# # doc2vec_model.save('/content/drive/MyDrive/Tralgo articles/d2v_M.model')
 
 # #
 # # next we'll work on the embeddings a bit
 # # this d2v model is trained on Colab and downloaded here
 
-# doc2vec_model = Doc2Vec.load('E:/Tralgo/d2v_M.model')
+# doc2vec_model = Doc2Vec.load('/content/drive/MyDrive/Tralgo articles/d2v_M.model')
 
 # doc_embeds = {}
 # for period, embeds in articles_text.items():
@@ -113,7 +113,7 @@ X.index.name = "Date"
 #
 # create our Y data and intersect our datasets
 
-Y_data = feather.read_feather('E:/Tralgo/data/financial_container.csv')
+Y_data = feather.read_feather('/content/drive/MyDrive/Tralgo articles/financial_container.csv')
 Y = pd.DataFrame(Y_data['GOOG_future_indicator'], index=Datelist(Y_data.index))
 Y.index.name = "Date"
 
@@ -220,7 +220,7 @@ for epoch in range(num_epochs):
         val_loss = criterion(val_outputs, Y_val_tensor)
 
     print(f"Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.4f}, Val Loss: {val_loss.item():.4f}")
-    
+
     # Early stopping based on validation loss
     if (val_loss.item() < best_val_loss) & (loss.item() < best_loss):
         best_val_loss = val_loss.item()
@@ -236,7 +236,7 @@ for epoch in range(num_epochs):
 # if I ever want to load:
 # remove the training part of the models
 # ...
-# model.load_state_dict(torch.load('E:/Tralgo/model.pt'))
+# model.load_state_dict(torch.load('/content/drive/MyDrive/Tralgo articles/model.pt'))
 
 model.eval()
 with torch.no_grad():
@@ -245,4 +245,4 @@ with torch.no_grad():
 
 print(f"Test Accuracy: {test_accuracy.item():.4f}")
 
-# torch.save(model.state_dict(), 'E:/Tralgo/model.pt')
+torch.save(model.state_dict(), '/content/drive/MyDrive/Tralgo articles/model.pt')
