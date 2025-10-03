@@ -45,5 +45,14 @@ df_q['investment'] = np.log( (df_q['FPI'] / df_q['GDPDEF']) / df_q['CNP_idx'] ) 
 df_q['output'] = np.log( df_q['GDPC1'] / df_q['CNP_idx'] ) * 100
 df_q['hours'] = np.log( (df_q['PRS85006023']*df_q['CE_idx'] / 100) / df_q['CNP_idx'] ) * 100
 df_q['inflation'] = ( np.log(df_q['GDPDEF']) - np.log(df_q['GDPDEF'].shift(1))  )* 100
-df_q['real_wage'] = np.log( df_q['PRS85006101'] / df_q['GDPDEF'] ) * 100
+df_q['real_wage'] = np.log( df_q['PRS85006101_idx'] / df_q['GDPDEF'] ) * 100
 df_q['interest_rate'] = df_q['DFF'] / 4
+
+# final set of vars in the usmodel_data.xls
+df_q['dc'] = df_q['consumption'] - df_q['consumption'].shift(1)
+df_q['dinve'] = df_q['investment'] - df_q['investment'].shift(1)
+df_q['dy'] = df_q['output'] - df_q['output'].shift(1)
+df_q['labobs'] = df_q['hours'] - df_q['hours'].mean()
+df_q['pinfobs'] = df_q['inflation']
+df_q['dw'] = df_q['real_wage'] - df_q['real_wage'].shift(1)
+df_q['robs'] = df_q['interest_rate']
