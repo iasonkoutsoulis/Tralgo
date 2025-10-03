@@ -24,18 +24,26 @@ df = pdr.DataReader(fred_q, 'fred', start, end)
 
 # datawork
 df_q = df.resample('Q').mean()
+df_q.index = df_q.index.to_period('Q')
 
-for col in df_q.columns:
-    s = df_q[col].dropna()
-    if s.empty:
-        continue
+# practically we index with 2017Q3 because that's what PRS85006023 uses
 
-    plt.figure()             # ensure a separate figure
-    s.plot()                 # matplotlib (no seaborn, no colors specified)
-    plt.title(col)
-    plt.xlabel('Date')
-    plt.ylabel(col)
-    plt.tight_layout()
-    # Show (if running interactively) and save
-    # Comment out savefig if you don't want files
-    plt.show()
+df_q['CE_idx'] = 100 * df_q['CE16OV'] / df_q['CE16OV'].loc['2017Q3']
+df_q['CNP_idx'] = df_q['CNP16OV'] / df_q['CNP16OV'].loc['2017Q3']
+
+# index hourly wage
+s = df_q['PRS85006101']
+g = (1 + s/100).groupby(df_q.index.quarter)
+chain = g.cumprod()
+df_q['PRS85006101_idx'] = 100 * chain / chain.loc['2017Q3']
+
+# print(df_q['PRS85006101_idx'].to_string())
+# checking that values match between here and usmodel_data.xsl
+
+df_q['consumption'] = np.log( (df_q['PCEC'] / df_q['GDPDEF']) / df_q['CNP_idx'] ) * 100 # note: GDPDEF is lower by around 4
+df_q['investment'] = np.log( (df_q['FPI'] / df_q['GDPDEF']) / df_q['CNP_idx'] ) * 100
+df_q['output'] = np.log( df_q['GDPC1'] / df_q['CNP_idx'] ) * 100
+df_q['hours'] = np.log( (df_q['PRS85006023']*df_q['CE_idx'] / 100) / df_q['CNP_idx'] ) * 100
+df_q['inflation'] = ( np.log(df_q['GDPDEF']) - np.log(df_q['GDPDEF'].shift(1))  )* 100
+df_q['real_wage'] = np.log( df_q['PRS85006101'] / df_q['GDPDEF'] ) * 100
+df_q['interest_rate'] = df_q['DFF'] / 4
