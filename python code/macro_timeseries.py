@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import pandas_datareader as pdr
-import statsmodels.api as sm
+import statsmodels as sm
 import matplotlib.pyplot as plt
 
 # datafetch
@@ -56,3 +56,26 @@ df_q['labobs'] = df_q['hours'] - df_q['hours'].mean()
 df_q['pinfobs'] = df_q['inflation']
 df_q['dw'] = df_q['real_wage'] - df_q['real_wage'].shift(1)
 df_q['robs'] = df_q['interest_rate']
+
+Y = df_q.loc[:, 'dc':'robs'].dropna()
+
+## VAR
+# examine autocorrelation
+
+x_order = ['dy', 'dc', 'dinve', 'dw', 'labobs', 'pinfobs', 'robs']
+X = Y[x_order]
+X.index = X.index.to_series().astype(str)
+
+sm.graphics.tsaplots.plot_acf(X['labobs'].dropna(), lags=30, title="dy ACF")
+sm.graphics.tsaplots.plot_pacf(X['labobs'].dropna(), lags=30, title="dy PACF")
+plt.show()
+
+model = sm.tsa.api.VAR(X)
+results = model.fit(4, trend='c')
+results.summary()
+results.plot()
+plt.show()
+
+irfs = results.irf(20)
+fig = irfs.plot(impulse='robs', orth=False)
+plt.show()
