@@ -1,7 +1,8 @@
 import pandas as pd
 import numpy as np
 import pandas_datareader as pdr
-import statsmodels as sm
+from statsmodels.tsa.api import VAR
+from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 import matplotlib.pyplot as plt
 
 # datafetch
@@ -66,16 +67,61 @@ x_order = ['dy', 'dc', 'dinve', 'dw', 'labobs', 'pinfobs', 'robs']
 X = Y[x_order]
 X.index = X.index.to_series().astype(str)
 
-sm.graphics.tsaplots.plot_acf(X['labobs'].dropna(), lags=30, title="dy ACF")
-sm.graphics.tsaplots.plot_pacf(X['labobs'].dropna(), lags=30, title="dy PACF")
-plt.show()
+# plot_acf(X['labobs'].dropna(), lags=30, title="dy ACF")
+# plot_pacf(X['labobs'].dropna(), lags=30, title="dy PACF")
+# plt.show()
 
-model = sm.tsa.api.VAR(X)
+model = VAR(X)
 results = model.fit(4, trend='c')
 results.summary()
-results.plot()
-plt.show()
+# results.plot()
+# plt.show()
 
 irfs = results.irf(20)
-fig = irfs.plot(impulse='robs', orth=False)
+# fig = irfs.plot(impulse='robs', orth=False)
+# plt.show()
+
+# compare with baseline model from smets and wouters 2007
+
+Z = pd.read_excel('data/usmodel_data.xls', header=2, usecols="A,W:AC")
+Z.set_index('Unnamed: 0', inplace=True)
+Z.index.names = X.index.names
+Z = Z.dropna()
+Z.columns = Z.columns.str.strip().str.replace(r'\s+', '', regex=True)
+Z.index = Z.index.map(lambda v: f"{int(v)}Q{int(round((round(v, 1) - int(v)) * 10))}")
+
+Z = Z.reindex(columns=x_order)
+
+model_b = VAR(Z)
+results_b = model_b.fit(4, trend='c')
+results_b.summary()
+# results_b.plot()
+# plt.show()
+
+irfs_b = results_b.irf(20)
+
+H = irfs.periods
+h = np.arange(H + 1)
+
+imp = 'robs'
+j = irfs.model.names.index(imp)
+
+ncols = 3
+nrows = int(np.ceil(irfs.neqs / ncols))
+fig, axes = plt.subplots(nrows, ncols, figsize=(4*ncols, 3*nrows), sharex=True, constrained_layout=True)
+axes = np.atleast_1d(axes).ravel()
+
+for i, name in enumerate(irfs.model.names):
+    ax = axes[i]
+    ax.plot(h, irfs.irfs[:H+1, i, j], label='New dataset')
+    ax.plot(h, irfs_b.irfs[:H+1, i, j], linestyle='--', label='Baseline (S\&W 2007)')
+    ax.axhline(0, linewidth=0.8)
+    ax.set_title(name)
+    ax.set_xlabel('Quarters')
+    ax.set_ylabel('Response')
+
+# one legend for the whole figure
+handles, labels = axes[0].get_legend_handles_labels()
+fig.legend(handles, labels, loc='upper right')
+fig.suptitle(f"IRFs to '{imp}' shock", y=1.02)
 plt.show()
